@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+
+  nextjs:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: nextjs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+    env_file:
+      - ./frontend/.env
+    restart: always
+    networks:
+      - app
+
+  nodejs:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile-node
+    container_name: nodejs
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    restart: always
+    networks:
+      - app
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    container_name: nginx
+    depends_on:
+      - nextjs
+    ports:
+      - "443:443"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    restart: always
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge
